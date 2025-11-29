@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Users, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 export function CardItem({
   imageUrl,
@@ -83,10 +84,13 @@ export function CardItem({
         </div>
 
         {/* CTA */}
+        <Link href="/campaigndetails">
         <Button className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white font-medium">
           <Heart className="w-4 h-4 mr-2" />
+          
           Donate Now
         </Button>
+        </Link>
       </CardContent>
     </Card>
   );

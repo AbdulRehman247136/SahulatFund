@@ -12,6 +12,7 @@ function Featured() {
 
             {/* Cards */}
             <div className="py-8 flex gap-6">
+              
                 <CardItem
                     imageUrl="/bg.png"   // replace with real image
                     title="Help Fatima Fight Cancer"
@@ -20,7 +21,9 @@ function Featured() {
                     goal={1200000}
                     donors={234}
                     daysLeft={12}
+                   
                 />
+              
 
                 <CardItem
                     imageUrl="/bg4.png"   // replace with real image
@@ -41,6 +44,7 @@ function Featured() {
                     donors={234}
                     daysLeft={12}
                 />
+                
 
             </div>
         </div>

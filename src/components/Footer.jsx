@@ -7,7 +7,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 lg:px-16 py-12">
 
         {/* Main Flex Container */}
-        <div className="flex flex-col lg:flex-row lg:justify-between gap-10 lg:gap-16">
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-10 lg:gap-0">
 
           {/* Left: Logo + Description */}
           <div className="flex flex-col gap-3 flex-shrink-0">
