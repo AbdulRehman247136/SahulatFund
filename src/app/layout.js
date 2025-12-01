@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Poppins, Geist, Geist_Mono } from "next/font/google";
+import Providers from "../components/Providers";
 
 // 👇 Your primary font
 const poppins = Poppins({
@@ -30,7 +31,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+      <Providers>
         {children}
+        </Providers>
       </body>
     </html>
   );
