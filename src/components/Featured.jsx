@@ -32,7 +32,6 @@ function Featured() {
             goal={campaign.goal}
             donors={campaign.donors}
             daysLeft={campaign.daysLeft}
-            category={campaign.category} // optional: pass if CardItem uses it
           />
         ))}
       </div>

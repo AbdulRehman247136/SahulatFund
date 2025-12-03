@@ -18,7 +18,7 @@ const steps = [
 ];
 
 export default function CreateCampaign() {
-  const [currentStep, setCurrentStep] = useState(2); // Example: Step 3 active (0-indexed)
+  const [currentStep, setCurrentStep] = useState(0); // Example: Step 3 active (0-indexed)
   const [formData, setFormData] = useState({});
   console.log("Form Data:", formData);
   console.log("Current Step:", currentStep);
