@@ -20,12 +20,38 @@ const steps = [
 export default function CreateCampaign() {
   const [currentStep, setCurrentStep] = useState(2); // Example: Step 3 active (0-indexed)
   const [formData, setFormData] = useState({});
+  console.log("Form Data:", formData);
+  console.log("Current Step:", currentStep);
 
   const CurrentComponent = steps[currentStep].component;
 
   const next = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   const prev = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  // -------------------------------
+  // NEW FUNCTION TO SAVE DATA TO FILE
+  // -------------------------------
+  const saveToFile = async () => {
+    try {
+      const res = await fetch("/api/save-campaign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentStep,
+          formData,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Saved:", data);
+      alert("Campaign data saved successfully!");
+    } catch (err) {
+      console.error("Failed to save campaign:", err);
+      alert("Failed to save campaign data!");
+    }
+  };
 
   return (
     <>
@@ -55,12 +81,10 @@ export default function CreateCampaign() {
 
             {/* Progress Bar */}
             <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-8">
-              {/* Completed portion (green) */}
               <div
                 className="absolute left-0 top-0 h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${(currentStep / steps.length) * 100}%` }}
               />
-              {/* Current progress (primary color) */}
               <div
                 className="absolute left-0 top-0 h-full bg-[var(--color-primary)] transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${progress}%` }}
@@ -109,8 +133,14 @@ export default function CreateCampaign() {
                 Previous
               </Button>
 
+              {/* -------------------------------
+                  CHANGED THIS BUTTON TO CALL saveToFile()
+              ------------------------------- */}
               {currentStep === steps.length - 1 ? (
-                <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 px-10 py-6 text-base font-medium">
+                <Button
+                  onClick={saveToFile} // <- SAVE DATA TO FILE
+                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 px-10 py-6 text-base font-medium"
+                >
                   <HiCheck className="w-6 h-6 mr-2" />
                   Submit for Review
                 </Button>
