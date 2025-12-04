@@ -23,7 +23,7 @@ export function CardItem({
     <>
       <Link href={"/details/" + id}>
 
-        <Card className="overflow-hidden shadow-lg max-w-md mx-auto rounded-2xl">
+        <Card className="overflow-hidden shadow-lg max-w-md mx-auto rounded-2xl min-h-[617px]">
           {/* Image + Verified Badge */}
           <div className="relative">
             <img
