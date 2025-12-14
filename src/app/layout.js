@@ -1,15 +1,16 @@
+// src/app/layout.js
+
 import "./globals.css";
 import { Poppins, Geist, Geist_Mono } from "next/font/google";
-import Providers from "../components/Providers";
+import Providers from "@/components/Providers";
+import Nav from "@/components/Nav";
 
-// 👇 Your primary font
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-poppins",
 });
 
-// 👇 Optional secondary fonts (keep or remove if not needed)
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -21,8 +22,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Donation & Crowdfunding Platform",
-  description: "A platform built with Next.js and love 💚",
+  title: "SahulatFund – Help with Heart",
+  description: "Pakistan's trusted medical crowdfunding platform",
 };
 
 export default function RootLayout({ children }) {
@@ -30,9 +31,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body
         className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-      <Providers>
-        {children}
+        <Providers>
+          <Nav />
+          {children}
         </Providers>
       </body>
     </html>

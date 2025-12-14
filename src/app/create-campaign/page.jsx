@@ -1,152 +1,222 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { HiCheck } from "react-icons/hi";
+import { useState, useRef } from "react";
+import { Upload, Heart, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import BasicInfoStep from "@/components/campaign/BasicInfoStep";
-import StoryStep from "@/components/campaign/StoryStep";
-import FinancialStep from "@/components/campaign/FinancialStep";
-import DocumentsStep from "@/components/campaign/DocumentsStep";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Nav from "@/components/Nav";
 
-const steps = [
-  { name: "Basic Info", component: BasicInfoStep },
-  { name: "Your Story", component: StoryStep },
-  { name: "Financial", component: FinancialStep },
-  { name: "Documents", component: DocumentsStep },
-];
-
 export default function CreateCampaign() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    story: "",
+    goal: "",
+    daysLeft: "30",
+    category: "",
+    documents: [""],
+    imageUrl: "", // base64
+  });
 
-  const CurrentComponent = steps[currentStep].component;
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const next = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const prev = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  // -------------------------------
-  // SAVE DATA + FILE
-  // -------------------------------
-  const saveToFile = async () => {
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: reader.result, // base64 string
+      }));
+      setPreviewUrl(URL.createObjectURL(file));
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const addDocument = () => {
+    setFormData((prev) => ({ ...prev, documents: [...prev.documents, ""] }));
+  };
+
+  const updateDocument = (i, value) => {
+    const copy = [...formData.documents];
+    copy[i] = value;
+    setFormData((prev) => ({ ...prev, documents: copy }));
+  };
+
+  const removeDocument = (i) => {
+    setFormData((prev) => ({
+      ...prev,
+      documents: prev.documents.filter((_, index) => index !== i),
+    }));
+  };
+
+  const submit = async () => {
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.story ||
+      !formData.goal ||
+      !formData.imageUrl
+    ) {
+      alert("Please fill all required fields and upload an image");
+      return;
+    }
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      story: formData.story,
+      goal: Number(formData.goal),
+      daysLeft: Number(formData.daysLeft),
+      category: formData.category,
+      imageUrl: formData.imageUrl, // base64
+      documents: formData.documents.filter((d) => d.trim()),
+    };
+
     try {
-      const formDataToSend = new FormData();
-
-      // Append other fields
-      Object.entries(formData).forEach(([key, value]) => {
-        if (!(value instanceof File)) formDataToSend.append(key, value);
-      });
-
-      // Append file
-      if (formData.proofDocument instanceof File) {
-        formDataToSend.append("proofDocument", formData.proofDocument);
-      }
-
-      const res = await fetch("/api/save-campaign", {
+      const res = await fetch("http://localhost:3000/campaigns", {
         method: "POST",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      console.log("Saved:", data);
-      alert("Campaign data saved successfully!");
+      if (res.ok) {
+        alert("Campaign created!");
+        window.location.href = "/admin";
+      } else {
+        const err = await res.json();
+        alert("Error: " + err.message);
+      }
     } catch (err) {
-      console.error("Failed to save campaign:", err);
-      alert("Failed to save campaign data!");
+      console.error(err);
+      alert("Network error");
     }
   };
 
   return (
     <>
       <Nav />
-      <div className="min-h-screen bg-gray-50 py-8 px-4 mt-12">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4">
-              <img src="./logo9.png" alt="Logo" className="w-16 h-16 -ml-4" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-900">Create Your Campaign</h1>
-            <p className="text-gray-600 mt-2">Tell your story and get the support you need</p>
+
+      <div className="min-h-screen bg-gray-50 py-12 px-4 mt-12">
+        <div className="max-w-4xl mx-auto">
+
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900">Start a Campaign</h1>
           </div>
 
-          <div className="mb-12">
-            <div className="flex justify-between items-center mb-5 text-sm">
-              <span className="text-gray-600 font-medium">
-                Step {currentStep + 1} of {steps.length}
-              </span>
-              <span className="text-gray-600 font-semibold">{Math.round(progress)}% complete</span>
+          <div className="bg-white rounded-3xl shadow-2xl p-8 space-y-12">
+
+            {/* Image Upload */}
+            <div>
+              <Label>Campaign Photo *</Label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed rounded-xl p-10 text-center cursor-pointer"
+              >
+                {previewUrl ? (
+                  <img src={previewUrl} className="max-h-80 mx-auto rounded-xl" />
+                ) : (
+                  <p>Click to upload</p>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+                className="hidden"
+              />
             </div>
 
-            <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-8">
-              <div
-                className="absolute left-0 top-0 h-full bg-green-500 transition-all duration-500 ease-out rounded-full"
-                style={{ width: `${(currentStep / steps.length) * 100}%` }}
-              />
-              <div
-                className="absolute left-0 top-0 h-full bg-[var(--color-primary)] transition-all duration-500 ease-out rounded-full"
-                style={{ width: `${progress}%` }}
+            {/* Title */}
+            <div>
+              <Label>Campaign Title *</Label>
+              <Input name="title" value={formData.title} onChange={handleChange} />
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label>Short Description *</Label>
+              <Textarea name="description" value={formData.description} onChange={handleChange} />
+            </div>
+
+            {/* Category */}
+            <div>
+              <Label>Category *</Label>
+              <Input
+                name="category"
+                placeholder="e.g. Medical Emergency"
+                value={formData.category}
+                onChange={handleChange}
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              {steps.map((step, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-center py-3 px-6 rounded-full text-sm font-medium transition-all shadow-sm ${
-                    index < currentStep
-                      ? "bg-green-100 text-green-700 border-2 border-green-300"
-                      : index === currentStep
-                      ? "bg-[var(--color-primary)] text-white shadow-lg scale-105"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
-                >
-                  {index < currentStep ? (
-                    <span className="flex items-center gap-2">
-                      <HiCheck className="w-5 h-5" />
-                      {step.name}
-                    </span>
-                  ) : (
-                    step.name
+            {/* Days Left */}
+            <div>
+              <Label>Days Left *</Label>
+              <Input
+                name="daysLeft"
+                type="number"
+                value={formData.daysLeft}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Story */}
+            <div>
+              <Label>Full Story *</Label>
+              <Textarea name="story" value={formData.story} onChange={handleChange} />
+            </div>
+
+            {/* Goal */}
+            <div>
+              <Label>Goal *</Label>
+              <Input
+                name="goal"
+                type="number"
+                value={formData.goal}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Documents */}
+            <div>
+              <Label>Supporting Documents</Label>
+              {formData.documents.map((doc, i) => (
+                <div key={i} className="flex gap-3 mb-3">
+                  <Input
+                    value={doc}
+                    onChange={(e) => updateDocument(i, e.target.value)}
+                  />
+                  {formData.documents.length > 1 && (
+                    <Button variant="ghost" onClick={() => removeDocument(i)}>
+                      <Trash2 className="w-5 h-5 text-red-500" />
+                    </Button>
                   )}
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <CurrentComponent formData={formData} setFormData={setFormData} />
-
-            <div className="flex justify-between mt-12">
-              <Button
-                variant="outline"
-                onClick={prev}
-                disabled={currentStep === 0}
-                className="px-8 py-6 text-base"
-              >
-                <ChevronLeft className="w-5 h-5 mr-2" />
-                Previous
+              <Button onClick={addDocument}>
+                <Plus className="mr-2" /> Add Document
               </Button>
-
-              {currentStep === steps.length - 1 ? (
-                <Button
-                  onClick={saveToFile}
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 px-10 py-6 text-base font-medium"
-                >
-                  <HiCheck className="w-6 h-6 mr-2" />
-                  Submit for Review
-                </Button>
-              ) : (
-                <Button
-                  onClick={next}
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 px-10 py-6 text-base font-medium"
-                >
-                  Next Step
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              )}
             </div>
+
+            {/* Submit */}
+            <Button onClick={submit} className="w-full py-6 text-xl">
+              Create Campaign
+            </Button>
           </div>
         </div>
       </div>

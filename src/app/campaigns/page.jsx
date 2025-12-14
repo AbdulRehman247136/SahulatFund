@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Search, Filter } from "lucide-react";
-import campaignsData from "@/campaignsdata";
+import React, { useState, useMemo, useEffect } from "react";
+import { Search } from "lucide-react";
 import { CardItem } from "@/components/CardItem";
 import Nav from "@/components/Nav";
 
@@ -11,16 +10,38 @@ const categories = [
   "Medical Emergency",
   "Surgery",
   "Cancer Treatment",
-  "Accident Care",
-  "Children",
-  "Disaster Relief",
-  "Water & Sanitation",
+  "Accident Recovery",
+  "Heart Disease",
   "Education",
+  "Other"
 ];
 
 const quickFilters = ["All", "Urgent", "Verified", "Almost Funded", "New"];
 
 export default function Campaigns() {
+  const [campaignsData, setCampaignsData] = useState([]);
+
+  // 🔥 DIRECT API CALL HERE
+  useEffect(() => {
+    async function loadCampaigns() {
+      try {
+        const res = await fetch("http://localhost:3001/campaigns");
+
+        if (!res.ok) {
+          console.error("Failed to fetch campaigns:", res.status);
+          return;
+        }
+
+        const data = await res.json();
+        setCampaignsData(data);
+      } catch (err) {
+        console.error("Error loading campaigns:", err);
+      }
+    }
+
+    loadCampaigns();
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedQuickFilter, setSelectedQuickFilter] = useState("All");
@@ -29,12 +50,12 @@ export default function Campaigns() {
     let filtered = campaignsData;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (c) =>
-          c.title.toLowerCase().includes(query) ||
-          c.description.toLowerCase().includes(query) ||
-          c.category.toLowerCase().includes(query)
+          c.title?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.category?.toLowerCase().includes(q)
       );
     }
 
@@ -51,134 +72,39 @@ export default function Campaigns() {
     }
 
     return filtered;
-  }, [searchQuery, selectedCategory, selectedQuickFilter]);
+  }, [searchQuery, selectedCategory, selectedQuickFilter, campaignsData]);
 
   return (
     <>
       <Nav />
-
-      <div className="min-h-screen bg-gray-50 pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-
-          {/* HEADER */}
-          <div className="text-center mb-12 animate-fadeUp">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              All Campaigns
-            </h1>
-            <p className="text-gray-600 text-lg md:text-xl mt-4 max-w-2xl mx-auto">
-              Browse all verified fundraising campaigns. Every rupee makes a difference.
-            </p>
+      <div className="min-h-screen bg-gray-50 pt-24 pb-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold">All Campaigns</h1>
           </div>
 
-          {/* SEARCH BAR */}
-          <div className="max-w-2xl mx-auto mb-10 animate-fadeUp delay-100">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="max-w-2xl mx-auto mb-10">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search campaigns..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-6 py-4 bg-white border border-gray-200 rounded-xl 
-                focus:ring-2 focus:ring-[var(--color-primary)]/30 transition-all 
-                shadow-sm group-hover:shadow-md"
+                className="w-full pl-12 pr-4 py-3 border rounded-xl"
               />
             </div>
           </div>
 
-          {/* FILTERS */}
-          <div className="mb-10 space-y-10">
-
-            {/* CATEGORIES */}
-            <div className="animate-fadeUp delay-200">
-              <div className="flex items-center gap-3 mb-4">
-                <Filter className="w-5 h-5 text-gray-700" />
-                <h3 className="font-semibold text-gray-800">Categories</h3>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all
-                      hover:scale-105 active:scale-95
-                      ${
-                        selectedCategory === cat
-                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-blue-200"
-                          : "bg-white text-gray-700 border border-gray-300 hover:border-[var(--color-primary)]"
-                      }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* QUICK FILTERS */}
-            <div className="animate-fadeUp delay-300">
-              <h3 className="font-semibold text-gray-800 mb-4">Quick Filters</h3>
-              <div className="flex flex-wrap gap-3">
-                {quickFilters.map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setSelectedQuickFilter(filter)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all 
-                      hover:scale-105 active:scale-95
-                      ${
-                        selectedQuickFilter === filter
-                          ? "bg-[var(--color-primary)] text-white shadow-md shadow-blue-200"
-                          : "bg-white text-gray-700 border border-gray-300 hover:border-[var(--color-primary)]"
-                      }`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* RESULTS COUNT */}
-          <p className="text-gray-600 mb-8 animate-fadeUp delay-400">
-            Showing{" "}
-            <span className="font-bold text-[var(--color-primary)]">
-              {filteredCampaigns.length}
-            </span>{" "}
-            campaign{filteredCampaigns.length !== 1 && "s"}
+          <p className="text-gray-600 mb-6">
+            Showing <b>{filteredCampaigns.length}</b> campaigns
           </p>
 
-          {/* CAMPAIGN CARDS */}
-          <div className="py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCampaigns.map((campaign, index) => (
-              <div
-                key={campaign.id}
-                className="animate-fadeUp"
-                style={{ animationDelay: `${0.1 * index}s` }}
-              >
-                <CardItem {...campaign} />
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredCampaigns.map((c) => (
+              <CardItem key={c.id} {...c} />
             ))}
           </div>
-
-          {/* EMPTY STATE */}
-          {filteredCampaigns.length === 0 && (
-            <div className="text-center py-20 animate-fadeUp">
-              <p className="text-2xl text-gray-500 mb-6">
-                No campaigns found matching your search.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("All");
-                  setSelectedQuickFilter("All");
-                }}
-                className="px-8 py-3 bg-[var(--color-primary)] text-white rounded-full 
-                font-medium hover:bg-[var(--color-primary)]/90 transition-all hover:scale-105"
-              >
-                Clear All Filters
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </>
